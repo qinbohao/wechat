@@ -56,7 +56,16 @@ public interface WechatService {
 	 * @param data
 	 */
 	void handleMsg(WechatMeta wechatMeta, JSONObject data) throws WechatException;
-	
+	/**
+	 * 
+	 * 发送信息
+	 * 
+	 */
+	public void webwxsendmsg(WechatMeta meta, String content, String to);
+	/**
+	 * 获取OPENID
+	 */
+	public String getUserName(String name);
 	/**
 	 * 获取最新消息
 	 * @param meta

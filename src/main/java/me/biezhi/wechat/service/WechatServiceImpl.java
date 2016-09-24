@@ -369,8 +369,15 @@ public class WechatServiceImpl implements WechatService {
 					String[] peopleContent = content.split(":<br/>");
 					LOGGER.info("|" + name + "| " + peopleContent[0] + ":\n" + peopleContent[1].replace("<br/>", "\n"));
 				} else {
+					LOGGER.info("OpenID:" + msg.getString("FromUserName"));
 					LOGGER.info(name + ": " + content);
-					String ans = robot.talk(content);
+					String ans="不好意思，网络超时啦~~~~";
+					try{
+						 ans = robot.talk(content);
+					}catch(Exception e){
+						e.printStackTrace();
+						
+					}
 					webwxsendmsg(wechatMeta, ans, msg.getString("FromUserName"));
 					LOGGER.info("自动回复 " + ans);
 				}
@@ -380,9 +387,9 @@ public class WechatServiceImpl implements WechatService {
 				FileKit.createDir(imgDir, false);
 				String imgUrl = wechatMeta.getBase_uri() + "/webwxgetmsgimg?MsgID=" + msgId + "&skey=" + wechatMeta.getSkey() + "&type=slave";
 				HttpRequest.get(imgUrl).header("Cookie", wechatMeta.getCookie()).receive(new File(imgDir + "/" + msgId+".jpg"));
-				webwxsendmsg(wechatMeta, "二蛋还不支持图片呢", msg.getString("FromUserName"));
+				webwxsendmsg(wechatMeta, "宝宝还不支持图片呢", msg.getString("FromUserName"));
 			} else if (msgType == 34) {
-				webwxsendmsg(wechatMeta, "二蛋还不支持语音呢", msg.getString("FromUserName"));
+				webwxsendmsg(wechatMeta, "宝宝还不支持语音呢", msg.getString("FromUserName"));
 			} else if (msgType == 42) {
 				LOGGER.info(name + " 给你发送了一张名片:");
 				LOGGER.info("=========================");
@@ -393,7 +400,7 @@ public class WechatServiceImpl implements WechatService {
 	/**
 	 * 发送消息
 	 */
-	private void webwxsendmsg(WechatMeta meta, String content, String to) {
+	public void webwxsendmsg(WechatMeta meta, String content, String to) {
 		String url = meta.getBase_uri() + "/webwxsendmsg?lang=zh_CN&pass_ticket=" + meta.getPass_ticket();
 		JSONObject body = new JSONObject();
 
@@ -433,7 +440,18 @@ public class WechatServiceImpl implements WechatService {
 		}
 		return name;
 	}
-	
+	public String getUserName(String name){
+		String username="";
+		for (int i = 0, len = Constant.CONTACT.getMemberList().size(); i < len; i++) {
+			JSONObject member = Constant.CONTACT.getMemberList().get(i).asJSONObject();
+			System.out.println(member.getString("NickName")+"  :   " +member.getString("RemarkName"));
+			if (member.getString("NickName").contains(name)) {
+				username = member.getString("UserName");
+				return username;
+			}
+		}
+		return username;	
+	}
 	@Override
 	public JSONObject webwxsync(WechatMeta meta) throws WechatException{
 		
@@ -452,7 +470,8 @@ public class WechatServiceImpl implements WechatService {
 		request.disconnect();
 
 		if (StringKit.isBlank(res)) {
-			throw new WechatException("同步syncKey失败");
+			LOGGER.info("同步syncKey失败");
+			//throw new WechatException("同步syncKey失败");
 		}
 		
 		JSONObject jsonObject = JSONKit.parseObject(res);
