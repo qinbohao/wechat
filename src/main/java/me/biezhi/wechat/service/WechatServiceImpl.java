@@ -471,6 +471,7 @@ public class WechatServiceImpl implements WechatService {
 
 		if (StringKit.isBlank(res)) {
 			LOGGER.info("同步syncKey失败");
+			return null;
 			//throw new WechatException("同步syncKey失败");
 		}
 		
