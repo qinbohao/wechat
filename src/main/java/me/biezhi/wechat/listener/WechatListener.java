@@ -49,11 +49,11 @@ public class WechatListener {
 								continue;
 							}
 							//每天推送信息
-							if(dateflag){//&&rightNow.get(Calendar.HOUR_OF_DAY)==17&&rightNow.get(Calendar.MINUTE)==55){
+							if(dateflag&&rightNow.get(Calendar.HOUR_OF_DAY)==6&&rightNow.get(Calendar.MINUTE)==40){
 								dateflag=false;
-								wechatService.webwxsendmsg(wechatMeta, "你想知道啥", wechatService.getUserName("空白"));
-								LOGGER.info("现在17点了");	
-							}else if(rightNow.get(Calendar.MINUTE)==-1){
+								wechatService.webwxsendmsg(wechatMeta, "你想知道啥", wechatService.getUserName("洋洋洋洋洋"));
+								LOGGER.info("现在6点40了");	
+							}else if(rightNow.get(Calendar.MINUTE)==45){
 								dateflag=true;
 							}
 

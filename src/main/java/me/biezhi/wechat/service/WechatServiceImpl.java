@@ -17,16 +17,15 @@ import me.biezhi.wechat.Constant;
 import me.biezhi.wechat.exception.WechatException;
 import me.biezhi.wechat.model.WechatContact;
 import me.biezhi.wechat.model.WechatMeta;
-import me.biezhi.wechat.robot.MoLiRobot;
-import me.biezhi.wechat.robot.Robot;
 import me.biezhi.wechat.util.Matchers;
+import me.command.Command;
 
 public class WechatServiceImpl implements WechatService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WechatService.class);
 	
 	// 茉莉机器人
-	private Robot robot = new MoLiRobot();
+	
 	
 	/**
 	 * 获取联系人
@@ -372,12 +371,8 @@ public class WechatServiceImpl implements WechatService {
 					LOGGER.info("OpenID:" + msg.getString("FromUserName"));
 					LOGGER.info(name + ": " + content);
 					String ans="不好意思，网络超时啦~~~~";
-					try{
-						 ans = robot.talk(content);
-					}catch(Exception e){
-						e.printStackTrace();
-						
-					}
+					ans=Command.getContent(content);
+				
 					webwxsendmsg(wechatMeta, ans, msg.getString("FromUserName"));
 					LOGGER.info("自动回复 " + ans);
 				}
