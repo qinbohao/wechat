@@ -26,7 +26,7 @@ public class WechatListener {
 					try {
 						int[] arr = wechatService.syncCheck(wechatMeta);
 						Calendar rightNow = Calendar.getInstance();
-						LOGGER.info("retcode={}, selector={}", arr[0], arr[1]);
+						LOGGER.debug("retcode={}, selector={}", arr[0], arr[1]);
 
 						if(arr[0] == 1100||arr[0]==1101){
 							LOGGER.info("你在手机上登出了微信，债见");
@@ -49,11 +49,11 @@ public class WechatListener {
 								continue;
 							}
 							//每天推送信息
-							if(dateflag&&rightNow.get(Calendar.HOUR_OF_DAY)==6&&rightNow.get(Calendar.MINUTE)==40){
+							if(dateflag&&rightNow.get(Calendar.MINUTE)==15){//rightNow.get(Calendar.HOUR_OF_DAY)==6&&
 								dateflag=false;
 								wechatService.webwxsendmsg(wechatMeta, "你想知道啥", wechatService.getUserName("洋洋洋洋洋"));
 								LOGGER.info("现在6点40了");	
-							}else if(rightNow.get(Calendar.MINUTE)==45){
+							}else if(rightNow.get(Calendar.MINUTE)==20){
 								dateflag=true;
 							}
 
@@ -61,7 +61,7 @@ public class WechatListener {
 							// 
 						}
 
-						LOGGER.info("等待2000ms...");
+						LOGGER.debug("等待2000ms...");
 						System.gc();
 						Thread.sleep(2000);
 					} catch (Exception e) {

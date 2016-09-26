@@ -73,9 +73,9 @@ public class WechatServiceImpl implements WechatService {
 								continue;
 							}
 							// 群聊
-							if (contact.getString("UserName").indexOf("@@") != -1) {
-								continue;
-							}
+							//if (contact.getString("UserName").indexOf("@@") != -1) {
+							//	continue;
+							//}
 							// 自己
 							if (contact.getString("UserName").equals(wechatMeta.getUser().getString("UserName"))) {
 								continue;
@@ -139,9 +139,9 @@ public class WechatServiceImpl implements WechatService {
 								continue;
 							}
 							// 群聊
-							if (contact.getString("UserName").indexOf("@@") != -1) {
-								continue;
-							}
+							//if (contact.getString("UserName").indexOf("@@") != -1) {
+							//	continue;
+							//}
 							// 自己
 							if (contact.getString("UserName").equals(wechatMeta.getUser().getString("UserName"))) {
 								continue;
@@ -364,9 +364,14 @@ public class WechatServiceImpl implements WechatService {
 					continue;
 				} else if (msg.getString("FromUserName").equals(wechatMeta.getUser().getString("UserName"))) {
 					continue;
-				} else if (msg.getString("ToUserName").indexOf("@@") != -1) {
+				} else if (msg.getString("FromUserName").indexOf("@@") != -1) {
 					String[] peopleContent = content.split(":<br/>");
-					LOGGER.info("|" + name + "| " + peopleContent[0] + ":\n" + peopleContent[1].replace("<br/>", "\n"));
+					LOGGER.info("|" + name + "| " +getUserRemarkName( peopleContent[0] )+ ":" + peopleContent[1].replace("<br/>", "\n"));
+					String ans="不好意思，网络超时啦~~~~";
+					ans=Command.getContent( peopleContent[1].replace(":<br/>", ""));
+					webwxsendmsg(wechatMeta,ans, msg.getString("FromUserName"));
+					LOGGER.info("自动回复 " + ans);
+					
 				} else {
 					LOGGER.info("OpenID:" + msg.getString("FromUserName"));
 					LOGGER.info(name + ": " + content);
