@@ -47,21 +47,19 @@ public class WechatListener {
 								continue;
 							} else if(arr[1] == 0){
 								continue;
-							}
-							//每天推送信息
-							if(dateflag&&rightNow.get(Calendar.MINUTE)==15){//rightNow.get(Calendar.HOUR_OF_DAY)==6&&
-								dateflag=false;
-								wechatService.webwxsendmsg(wechatMeta, "你想知道啥", wechatService.getUserName("洋洋洋洋洋"));
-								LOGGER.info("现在6点40了");	
-							}else if(rightNow.get(Calendar.MINUTE)==20){
-								dateflag=true;
-							}
-
+							}													
 						} else {
 							// 
 						}
-
-						LOGGER.debug("等待2000ms...");
+						//每天推送信息
+						if(dateflag&&rightNow.get(Calendar.MINUTE)==15){//rightNow.get(Calendar.HOUR_OF_DAY)==6&&
+							dateflag=false;
+							wechatService.webwxsendmsg(wechatMeta, "你想知道啥", wechatService.getUserName("洋洋洋洋洋"));
+							LOGGER.info("现在6点40了");	
+						}else if(rightNow.get(Calendar.MINUTE)==20){
+							dateflag=true;
+						}
+						LOGGER.debug("等待~2000ms...");
 						System.gc();
 						Thread.sleep(2000);
 					} catch (Exception e) {
