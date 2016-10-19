@@ -58,9 +58,9 @@ public class WechatServiceImpl implements WechatService {
 			if (null != BaseResponse) {
 				int ret = BaseResponse.getInt("Ret", -1);
 				if (ret == 0) {
-					JSONArray memberList = jsonObject.get("MemberList").asArray();
+					JSONArray memberList = jsonObject.get("MemberList").asArray();    //2016/10/19修改MemberList为ContactList
 					JSONArray contactList = new JSONArray();
-					
+					LOGGER.info("test");
 					if (null != memberList) {
 						for (int i = 0, len = memberList.size(); i < len; i++) {
 							JSONObject contact = memberList.get(i).asJSONObject();
@@ -86,7 +86,7 @@ public class WechatServiceImpl implements WechatService {
 						wechatContact.setContactList(contactList);
 						wechatContact.setMemberList(memberList);
 						
-						this.getGroup(wechatMeta, wechatContact);
+						//this.getGroup(wechatMeta, wechatContact,contactList);
 						
 						return wechatContact;
 					}
@@ -98,20 +98,25 @@ public class WechatServiceImpl implements WechatService {
 		return null;
 	}
 
-	private void getGroup(WechatMeta wechatMeta, WechatContact wechatContact) {
-		String url = wechatMeta.getBase_uri() + "/webwxbatchgetcontact?type=ex&pass_ticket=" + wechatMeta.getPass_ticket() + "&skey="
-				+ wechatMeta.getSkey() + "&r=" + DateKit.getCurrentUnixTime();
+	private String getGroup(WechatMeta wechatMeta, WechatContact wechatContact,String UserName) {
+		String name="";
+		String url = wechatMeta.getBase_uri() + "/webwxbatchgetcontact?type=ex&pass_ticket=" + wechatMeta.getPass_ticket() + "&lang=zh_CN"
+				 + "&r=" + DateKit.getCurrentUnixTime();
 
 		JSONObject body = new JSONObject();
+		JSONObject list = new JSONObject();
+		list.put("UserName", UserName);
+		list.put("EncryChatRoomId", "");
 		body.put("BaseRequest", wechatMeta.getBaseRequest());
-
+		body.put("Count", "1");
+		body.put("List", list);
 		HttpRequest request = HttpRequest.post(url).contentType("application/json;charset=utf-8")
 				.header("Cookie", wechatMeta.getCookie()).send(body.toString());
 		
 		LOGGER.debug(request.toString());
 		String res = request.body();
 		request.disconnect();
-
+		LOGGER.debug(res);
 		if (StringKit.isBlank(res)) {
 			throw new WechatException("获取群信息失败");
 		}
@@ -119,14 +124,15 @@ public class WechatServiceImpl implements WechatService {
 		LOGGER.debug(res);
 		
 		try {
+			LOGGER.info("获取群信息");
 			JSONObject jsonObject = JSONKit.parseObject(res);
 			JSONObject BaseResponse = jsonObject.get("BaseResponse").asJSONObject();
 			if (null != BaseResponse) {
 				int ret = BaseResponse.getInt("Ret", -1);
 				if (ret == 0) {
-					JSONArray memberList = jsonObject.get("MemberList").asArray();
-					JSONArray contactList = new JSONArray();
-					
+					JSONArray memberList = jsonObject.get("ContactList").asArray();
+					//JSONArray contactList = new JSONArray();
+					LOGGER.info("增加成员信息");
 					if (null != memberList) {
 						for (int i = 0, len = memberList.size(); i < len; i++) {
 							JSONObject contact = memberList.get(i).asJSONObject();
@@ -146,17 +152,27 @@ public class WechatServiceImpl implements WechatService {
 							if (contact.getString("UserName").equals(wechatMeta.getUser().getString("UserName"))) {
 								continue;
 							}
-							contactList.add(contact);
+							LOGGER.info(contact.getString("UserName"));
+							wechatContact.getContactList().add(contact);
+							wechatContact.getMemberList().add(memberList.get(i));
+							if (StringKit.isNotBlank(contact.getString("RemarkName"))){
+								name=contact.getString("RemarkName");
+							}else{
+								name=contact.getString("NickName");
+							}
+							
 						}
 						
-						wechatContact.setContactList(contactList);
-						wechatContact.setMemberList(memberList);
+						
+						//wechatContact.setContactList(contactList);
+						//wechatContact.setMemberList(memberList);
 					}
 				}
 			}
 		} catch (Exception e) {
 			throw new WechatException(e);
 		}
+		return name;
 	}
 
 	/**
@@ -354,7 +370,7 @@ public class WechatServiceImpl implements WechatService {
 			LOGGER.info("你有新的消息，请注意查收");
 			JSONObject msg = AddMsgList.get(i).asJSONObject();
 			int msgType = msg.getInt("MsgType", 0);
-			String name = getUserRemarkName(msg.getString("FromUserName"));
+			String name = getUserRemarkName(wechatMeta,msg.getString("FromUserName"));
 			String content = msg.getString("Content");
 			
 			if (msgType == 51) {
@@ -364,9 +380,9 @@ public class WechatServiceImpl implements WechatService {
 					continue;
 				} else if (msg.getString("FromUserName").equals(wechatMeta.getUser().getString("UserName"))) {
 					continue;
-				} else if (msg.getString("FromUserName").indexOf("@@") != -1) {
+				} else if (msg.getString("FromUserName").indexOf("@@") != -1) {  //群聊消息
 					String[] peopleContent = content.split(":<br/>");
-					LOGGER.info("|" + name + "| " +getUserRemarkName( peopleContent[0] )+ ":" + peopleContent[1].replace("<br/>", "\n"));
+					LOGGER.info("|" + name + "| " +getUserRemarkName(wechatMeta, peopleContent[0] )+ ":" + peopleContent[1].replace("<br/>", "\n"));
 					String ans="不好意思，网络超时啦~~~~";
 					ans=Command.getContent( peopleContent[1].replace(":<br/>", ""));
 					webwxsendmsg(wechatMeta,ans, msg.getString("FromUserName"));
@@ -425,19 +441,25 @@ public class WechatServiceImpl implements WechatService {
 		request.disconnect();
 	}
 	
-	private String getUserRemarkName(String id) {
+	private String getUserRemarkName(WechatMeta wechatMeta,String id) {
 		String name = "这个人物名字未知";
 		for (int i = 0, len = Constant.CONTACT.getMemberList().size(); i < len; i++) {
 			JSONObject member = Constant.CONTACT.getMemberList().get(i).asJSONObject();
 			if (member.getString("UserName").equals(id)) {
 				if (StringKit.isNotBlank(member.getString("RemarkName"))) {
 					name = member.getString("RemarkName");
+					return name;
 				} else {
 					name = member.getString("NickName");
+					return name;
 				}
-				return name;
+				
 			}
 		}
+		if (id.indexOf("@@") != -1) {
+			name=this.getGroup(wechatMeta,Constant.CONTACT, id);
+		}
+		
 		return name;
 	}
 	public String getUserName(String name){

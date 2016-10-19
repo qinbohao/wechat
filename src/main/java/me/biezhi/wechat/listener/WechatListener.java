@@ -61,7 +61,7 @@ public class WechatListener {
 						//每天推送信息
 						if(dateflag&&(rightNow.get(Calendar.MINUTE)>=47)&&rightNow.get(Calendar.HOUR_OF_DAY)==6){
 							dateflag=false;
-							wechatService.webwxsendmsg(wechatMeta, Command.getContent("课表"), wechatService.getUserName("洋洋洋洋洋"));
+							//wechatService.webwxsendmsg(wechatMeta, Command.getContent("课表"), wechatService.getUserName("洋洋洋洋洋"));
 							wechatService.webwxsendmsg(wechatMeta, Command.getContent("课表"), wechatService.getUserName("空白"));
 							LOGGER.info("发送课表");	
 						}else if(rightNow.get(Calendar.MINUTE)==50){
